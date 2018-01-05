@@ -26,15 +26,18 @@ namespace Triangles
 
         TRIANGLE_3D,
         TRIANGLE_6D,
-        TRIANGLE_8D,
-
-        HEXAGON
+        TRIANGLE_8D
     }
 
     public struct Coordinates
     {
         public int X { get; set; }
         public int Y { get; set; }
+
+        public override string ToString()
+        {
+            return $"{X}, {Y}";
+        }
     }
 
     public class CellSet
@@ -42,16 +45,27 @@ namespace Triangles
         public CellSetType CellSetType { get; set; }
         public Coordinates[] Data { get; set; }
 
+        public bool ContainsCoordinate(int x, int y)
+        {
+            for (int i = 0; i < Data.Length; i++)
+            {
+                if (Data[i].X == x && Data[i].Y == y)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public CellSet()
+        {
+            Data = new Coordinates[12];
+        }
+
         public CellSet(CellSetType cellSetType)
         {
-            if (cellSetType == CellSetType.HEXAGON)
-            {
-                Data = new Coordinates[12];
-            }
-            else
-            {
-                Data = new Coordinates[9];
-            }
+            Data = new Coordinates[9];
 
             CellSetType = cellSetType;
 
@@ -294,9 +308,102 @@ namespace Triangles
         #endregion
     }
 
+    public class CellData
+    {
+        public Coordinates Coordinates { get; set; }
+        public List<CellSetType> CellSets { get; set; }
+        public CellSet HexagonCellSet { get; set; }
+        public int Value { get; set; }
+        public bool[] IsNumberAllowed { get; set; }
+
+        public CellData()
+        {
+            Value = -1;
+        }
+
+        public CellData(Dictionary<CellSetType, CellSet> cellSets, int x, int y)
+        {
+            Coordinates = new Coordinates { X = x, Y = y };
+            CellSets = new List<CellSetType>();
+
+            Value = 0;
+
+            IsNumberAllowed = new bool[10];
+            for (int i = 1; i < 10; i++)
+            {
+                IsNumberAllowed[i] = true;
+            }
+
+            foreach (var cellSetType in cellSets.Keys)
+            {
+                var cellSet = cellSets[cellSetType];
+                if (cellSet.ContainsCoordinate(x, y))
+                {
+                    CellSets.Add(cellSetType);
+                }
+            }
+
+            HexagonCellSet = new CellSet();
+            HexagonCellSet.PopulateHexagon(x, y);
+        }
+
+        public void DisallowNumber(int number)
+        {
+            if (number != -1)
+            {
+                IsNumberAllowed[number] = false;
+            }
+        }
+
+        public void DisallowAllNumbers()
+        {
+            for (int i = 1; i < 10; i++)
+            {
+                IsNumberAllowed[i] = false;
+            }
+        }
+
+        public int CountOfAllowableNumbers()
+        {
+            var count = 0;
+            for (int i = 0; i < 10; i++)
+            {
+                count += (IsNumberAllowed[i] ? 1 : 0);
+            }
+
+            return count;
+        }
+
+        public List<int> GetListOfAllowableNumbers()
+        {
+            var allowableNumbers = new List<int>();
+            for (int i = 0; i < 10; i++)
+            {
+                if (IsNumberAllowed[i])
+                {
+                    allowableNumbers.Add(i);
+                }
+            }
+
+            return allowableNumbers;
+        }
+
+        public override string ToString()
+        {
+            if (Value == -1)
+            {
+                return "";
+            }
+
+            var cellSetTypes = CellSets.Select(x => x.ToString()).ToList();
+
+            return $"{Value}: ({string.Join(",", cellSetTypes)}";
+        }
+    }
+
     public class TriDoKu
     {
-        private int[,] _cells = new int[21, 11];
+        private CellData[,] _cells = new CellData[21, 11];
         private bool[] _hasNumber = new bool[10];
 
         #region Initialization
@@ -322,28 +429,165 @@ namespace Triangles
             _cellSets.Add(CellSetType.TRIANGLE_7U, new CellSet(CellSetType.TRIANGLE_7U));
             _cellSets.Add(CellSetType.TRIANGLE_8D, new CellSet(CellSetType.TRIANGLE_8D));
             _cellSets.Add(CellSetType.TRIANGLE_9U, new CellSet(CellSetType.TRIANGLE_9U));
-            _cellSets.Add(CellSetType.HEXAGON, new CellSet(CellSetType.HEXAGON));
         }
+
+        private void InitializeCells()
+        {
+            int x, y;
+
+            for (x = 0; x < 21; x++)
+            {
+                for (y = 0; y < 11; y++)
+                {
+                    _cells[x, y] = new CellData();
+                }
+            }
+
+            x = 10;
+            y = 1;
+            var count = 1;
+            do
+            {
+                for (var i = 0; i < count; i++)
+                {
+                    _cells[x + i, y] = new CellData(_cellSets, x + i, y);
+                }
+                x--;
+                y++;
+                count += 2;
+            } while (y != 10);
+        }
+
+        private void DetermineAllowableNumbers()
+        {
+            // Cycle through all the cells.
+            for (int x = 0; x < 21; x++)
+            {
+                for (int y = 0; y < 11; y++)
+                {
+                    var cellData = _cells[x, y];
+                    if (cellData.Value == 0)
+                    {
+                        foreach (var cellSetType in cellData.CellSets)
+                        {
+                            var cellSet = _cellSets[cellSetType];
+                            foreach (var coordinate in cellSet.Data)
+                            {
+                                cellData.DisallowNumber(_cells[coordinate.X, coordinate.Y].Value);
+                            }
+                        }
+
+                        DetermineAllowableNumbersForHexagon(cellData);
+                    }
+                    else if (cellData.Value != -1)
+                    {
+                        cellData.DisallowAllNumbers();
+                    }
+                }
+            }
+        }
+
+        private void DetermineAllowableNumbersForHexagon(CellData cellData)
+        {
+            var cellSet = cellData.HexagonCellSet;
+            foreach (var coordinate in cellSet.Data)
+            {
+                cellData.DisallowNumber(_cells[coordinate.X, coordinate.Y].Value);
+            }
+        }
+
+        private void UpdateAllowableNumbers(int x, int y)
+        {
+            var cellData = _cells[x, y];
+            var number = cellData.Value;
+
+            foreach (var cellSetType in cellData.CellSets)
+            {
+                var cellSet = _cellSets[cellSetType];
+                foreach (var coordinate in cellSet.Data)
+                {
+                    _cells[coordinate.X, coordinate.Y].DisallowNumber(number);
+                }
+            }
+
+            foreach (var coordinate in cellData.HexagonCellSet.Data)
+            {
+                if (_cells[coordinate.X, coordinate.Y].Value != -1)
+                {
+                    _cells[coordinate.X, coordinate.Y].DisallowNumber(number);
+                }
+            }
+        }
+
         #endregion
 
         public void Run()
         {
             InitializeCellSets();
+            InitializeCells();
 
             // Triangles1 - Good
             // Triangles2 - OUTSIDE_NW, OUTSIDE_NE, TRIANGLE_1U
             // Triangles3 - OUTSIDE_BOT, INSIDE_SW, INSIDE_SE, TRIANGLE_7U
             // Triangles4 - INSIDE_TOP, TRIANGLE_3D
             // Triangles5 - INSIDE_SW, INSIDE_SE, TRIANGLE_2U, TRIANGLE_4U, TRIANGLE_5U, TRIANGLE_6D, TRIANGLE_8D, TRIANGLE_9U
-            Read("Triangles1.txt");
+            Read("Solvable2.txt");
 
-            var ezs = ToString();
+            DetermineAllowableNumbers();
 
-            Validate();
+            var ezs1 = ToString();
 
-            // EZSTODO - Validate hexagons.
-            // EZSTODO - Implement logic for solving.
+            Solve();
 
+            var ezs2 = ToString();
+        }
+
+        private void Solve()
+        {
+            var loops = 0;
+            var totalCount = 0;
+
+            var count = SolveByAllowableNumbers();
+            while (count != 0)
+            {
+                loops++;
+                totalCount += count;
+                count = SolveByAllowableNumbers();
+            }
+        }
+
+        // Easiest approach. Basically see what number(s) are allowed in a given cell.
+        // If we get down to one then we know what the number should be.
+        private int SolveByAllowableNumbers()
+        {
+            var count = 0;
+            List<Coordinates> newNumbers = new List<Coordinates>();
+
+            for (int x = 0; x < 21; x++)
+            {
+                for (int y = 0; y < 11; y++)
+                {
+                    var cellData = _cells[x, y];
+                    if (cellData.Value == 0)
+                    {
+                        if (cellData.CountOfAllowableNumbers() == 1)
+                        {
+                            int allowableNumber = cellData.GetListOfAllowableNumbers().First();
+                            cellData.Value = allowableNumber;
+                            newNumbers.Add(new Coordinates { X = x, Y = y });
+
+                            count++;
+                        }
+                    }
+                }
+            }
+
+            foreach (var coordinate in newNumbers)
+            {
+                UpdateAllowableNumbers(coordinate.X, coordinate.Y);
+            }
+
+            return count;
         }
 
         #region Startup
@@ -359,7 +603,7 @@ namespace Triangles
 
                 for (int j = 0; j < length; j++)
                 {
-                    sb.Append(_cells[x + j, y]);
+                    sb.Append(_cells[x + j, y].Value);
                 }
 
                 x--;
@@ -390,33 +634,6 @@ namespace Triangles
             }
         }
 
-        private void ResetCells()
-        {
-            int x, y;
-
-            for (x = 0; x < 18; x++)
-            {
-                for (y = 0; y < 10; y++)
-                {
-                    _cells[x, y] = -1;
-                }
-            }
-
-            x = 10;
-            y = 1;
-            var count = 1;
-            do
-            {
-                for (var i = 0; i < count; i++)
-                {
-                    _cells[x + i, y] = 0;
-                }
-                x--;
-                y++;
-                count += 2;
-            } while (y != 10);
-        }
-
         private int[] GetValuesFromInput(string line)
         {
             return line.ToCharArray().Select(x => x - '0').ToArray();
@@ -426,7 +643,7 @@ namespace Triangles
         {
             for (int i = 0; i < data.Length; i++)
             {
-                _cells[x + i, y] = data[i];
+                _cells[x + i, y].Value = data[i];
             }
         }
 
@@ -450,10 +667,7 @@ namespace Triangles
         {
             foreach (CellSetType cellSetType in Enum.GetValues(typeof(CellSetType)))
             {
-                if (cellSetType != CellSetType.HEXAGON)
-                {
-                    Validate(cellSetType);
-                }
+                Validate(cellSetType);
             }
 
             ValidateHexagons();
@@ -472,7 +686,7 @@ namespace Triangles
             {
                 var x = cellSet[i].X;
                 var y = cellSet[i].Y;
-                var number = _cells[x, y];
+                var number = _cells[x, y].Value;
 
                 if (number != -1 && number != 0)
                 {
@@ -491,7 +705,7 @@ namespace Triangles
             {
                 var x = cellSet[i].X;
                 var y = cellSet[i].Y;
-                var number = _cells[x, y];
+                var number = _cells[x, y].Value;
 
                 if (number == centerOfHexagon)
                 {
@@ -507,8 +721,7 @@ namespace Triangles
             {
                 for (var i = 0; i < count; i++)
                 {
-                    _cellSets[CellSetType.HEXAGON].PopulateHexagon(x + i, y);
-                    ValidateHexagon(_cellSets[CellSetType.HEXAGON].Data, _cells[x + i, y]);
+                    ValidateHexagon(_cells[x + i, y].HexagonCellSet.Data, _cells[x + i, y].Value);
                 }
                 x--;
                 y++;
