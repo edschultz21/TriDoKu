@@ -413,7 +413,7 @@ namespace Triangles
 
         private int[] GetValuesFromInput(string line)
         {
-            return line.Split(',').Select(x => Convert.ToInt32(x)).ToArray();
+            return line.ToCharArray().Select(x => x - '0').ToArray();
         }
 
         private void PopulateCells(int x, int y, int[] data)
