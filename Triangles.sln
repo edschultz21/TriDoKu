@@ -1,0 +1,24 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Triangles", "Triangles.csproj", "{B1EA0509-AC9A-4211-9467-A9079DFC3337}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B80AD1D7-679F-40A7-B70F-7CD20512A4BE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B1EA0509-AC9A-4211-9467-A9079DFC3337}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1EA0509-AC9A-4211-9467-A9079DFC3337}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1EA0509-AC9A-4211-9467-A9079DFC3337}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1EA0509-AC9A-4211-9467-A9079DFC3337}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
