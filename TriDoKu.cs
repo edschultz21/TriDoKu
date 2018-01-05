@@ -31,20 +31,26 @@ namespace Triangles
         HEXAGON
     }
 
+    public struct Coordinates
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+    }
+
     public class CellSet
     {
         public CellSetType CellSetType { get; set; }
-        public int[,] Data { get; set; }
+        public Coordinates[] Data { get; set; }
 
         public CellSet(CellSetType cellSetType)
         {
             if (cellSetType == CellSetType.HEXAGON)
             {
-                Data = new int[12, 2];
+                Data = new Coordinates[12];
             }
             else
             {
-                Data = new int[9, 2];
+                Data = new Coordinates[9];
             }
 
             CellSetType = cellSetType;
@@ -99,19 +105,19 @@ namespace Triangles
                 case CellSetType.TRIANGLE_9U: x = 16; y = 7; break;
             }
 
-            Data[cell, 0] = x;
-            Data[cell, 1] = y;
+            Data[cell].X = x;
+            Data[cell].Y = y;
             cell++;
             for (int i = -1; i <= 1; i++)
             {
-                Data[cell, 0] = x + i;
-                Data[cell, 1] = y + 1;
+                Data[cell].X = x + i;
+                Data[cell].Y = y + 1;
                 cell++;
             }
             for (int i = -2; i <= 2; i++)
             {
-                Data[cell, 0] = x + i;
-                Data[cell, 1] = y + 2;
+                Data[cell].X = x + i;
+                Data[cell].Y = y + 2;
                 cell++;
             }
         }
@@ -127,19 +133,19 @@ namespace Triangles
                 case CellSetType.TRIANGLE_8D: x = 13; y = 9; break;
             }
 
-            Data[cell, 0] = x;
-            Data[cell, 1] = y;
+            Data[cell].X = x;
+            Data[cell].Y = y;
             cell++;
             for (int i = -1; i <= 1; i++)
             {
-                Data[cell, 0] = x + i;
-                Data[cell, 1] = y - 1;
+                Data[cell].X = x + i;
+                Data[cell].Y = y - 1;
                 cell++;
             }
             for (int i = -2; i <= 2; i++)
             {
-                Data[cell, 0] = x + i;
-                Data[cell, 1] = y - 2;
+                Data[cell].X = x + i;
+                Data[cell].Y = y - 2;
                 cell++;
             }
         }
@@ -149,30 +155,30 @@ namespace Triangles
             switch (CellSetType)
             {
                 case CellSetType.OUTSIDE_NW:
-                    Data[0, 0] = 10;
-                    Data[0, 1] = 1;
+                    Data[0].X = 10;
+                    Data[0].Y = 1;
                     for (int i = 1; i < 9; i++)
                     {
-                        Data[i, 0] = Data[i - 1, 0] - 1;
-                        Data[i, 1] = Data[i - 1, 1] + 1;
+                        Data[i].X = Data[i - 1].X - 1;
+                        Data[i].Y = Data[i - 1].Y + 1;
                     }
                     break;
                 case CellSetType.OUTSIDE_NE:
-                    Data[0, 0] = 10;
-                    Data[0, 1] = 1;
+                    Data[0].X = 10;
+                    Data[0].Y = 1;
                     for (int i = 1; i < 9; i++)
                     {
-                        Data[i, 0] = Data[i - 1, 0] + 1;
-                        Data[i, 1] = Data[i - 1, 1] + 1;
+                        Data[i].X = Data[i - 1].X + 1;
+                        Data[i].Y = Data[i - 1].Y + 1;
                     }
                     break;
                 case CellSetType.OUTSIDE_BOT:
-                    Data[0, 0] = 2;
-                    Data[0, 1] = 9;
+                    Data[0].X = 2;
+                    Data[0].Y = 9;
                     for (int i = 1; i < 9; i++)
                     {
-                        Data[i, 0] = Data[i - 1, 0] + 2;
-                        Data[i, 1] = Data[i - 1, 1];
+                        Data[i].X = Data[i - 1].X + 2;
+                        Data[i].Y = Data[i - 1].Y;
                     }
                     break;
             }
@@ -183,36 +189,36 @@ namespace Triangles
             switch (CellSetType)
             {
                 case CellSetType.INSIDE_SW:
-                    Data[0, 0] = 6;
-                    Data[0, 1] = 5;
+                    Data[0].X = 6;
+                    Data[0].Y = 5;
                     for (int i = 1; i < 9; i++)
                     {
-                        Data[i, 0] = Data[i - 1, 0];
-                        Data[i, 1] = Data[i - 1, 1] + 1;
+                        Data[i].X = Data[i - 1].X;
+                        Data[i].Y = Data[i - 1].Y + 1;
                         i++;
-                        Data[i, 0] = Data[i - 1, 0] + 1;
-                        Data[i, 1] = Data[i - 1, 1];
+                        Data[i].X = Data[i - 1].X + 1;
+                        Data[i].Y = Data[i - 1].Y;
                     }
                     break;
                 case CellSetType.INSIDE_SE:
-                    Data[0, 0] = 14;
-                    Data[0, 1] = 5;
+                    Data[0].X = 14;
+                    Data[0].Y = 5;
                     for (int i = 1; i < 9; i++)
                     {
-                        Data[i, 0] = Data[i - 1, 0];
-                        Data[i, 1] = Data[i - 1, 1] + 1;
+                        Data[i].X = Data[i - 1].X;
+                        Data[i].Y = Data[i - 1].Y + 1;
                         i++;
-                        Data[i, 0] = Data[i - 1, 0] - 1;
-                        Data[i, 1] = Data[i - 1, 1];
+                        Data[i].X = Data[i - 1].X - 1;
+                        Data[i].Y = Data[i - 1].Y;
                     }
                     break;
                 case CellSetType.INSIDE_TOP:
-                    Data[0, 0] = 6;
-                    Data[0, 1] = 5;
+                    Data[0].X = 6;
+                    Data[0].Y = 5;
                     for (int i = 1; i < 9; i++)
                     {
-                        Data[i, 0] = Data[i - 1, 0] + 1;
-                        Data[i, 1] = Data[i - 1, 1];
+                        Data[i].X = Data[i - 1].X + 1;
+                        Data[i].Y = Data[i - 1].Y;
                     }
                     break;
             }
@@ -237,23 +243,23 @@ namespace Triangles
 
             for (int i = -1; i <= 1; i++)
             {
-                Data[cell, 0] = x + i;
-                Data[cell, 1] = y - 1;
+                Data[cell].X = x + i;
+                Data[cell].Y = y - 1;
                 cell++;
             }
             for (int i = -2; i <= 2; i++)
             {
                 if (i != 0)
                 {
-                    Data[cell, 0] = x + i;
-                    Data[cell, 1] = y;
+                    Data[cell].X = x + i;
+                    Data[cell].Y = y;
                     cell++;
                 }
             }
             for (int i = -2; i <= 2; i++)
             {
-                Data[cell, 0] = x + i;
-                Data[cell, 1] = y + 1;
+                Data[cell].X = x + i;
+                Data[cell].Y = y + 1;
                 cell++;
             }
         }
@@ -264,23 +270,23 @@ namespace Triangles
 
             for (int i = -2; i <= 2; i++)
             {
-                Data[cell, 0] = x + i;
-                Data[cell, 1] = y - 1;
+                Data[cell].X = x + i;
+                Data[cell].Y = y - 1;
                 cell++;
             }
             for (int i = -2; i <= 2; i++)
             {
                 if (i != 0)
                 {
-                    Data[cell, 0] = x + i;
-                    Data[cell, 1] = y;
+                    Data[cell].X = x + i;
+                    Data[cell].Y = y;
                     cell++;
                 }
             }
             for (int i = -1; i <= 1; i++)
             {
-                Data[cell, 0] = x + i;
-                Data[cell, 1] = y + 1;
+                Data[cell].X = x + i;
+                Data[cell].Y = y + 1;
                 cell++;
             }
         }
@@ -458,14 +464,14 @@ namespace Triangles
             Validate(_cellSets[cellSetType].Data);
         }
 
-        private void Validate(int[,] cellSet)
+        private void Validate(Coordinates[] cellSet)
         {
             ResetHasNumber();
 
             for (int i = 0; i < 9; i++)
             {
-                var x = cellSet[i, 0];
-                var y = cellSet[i, 1];
+                var x = cellSet[i].X;
+                var y = cellSet[i].Y;
                 var number = _cells[x, y];
 
                 if (number != -1 && number != 0)
@@ -479,12 +485,12 @@ namespace Triangles
             }
         }
 
-        private void ValidateHexagon(int[,] cellSet, int centerOfHexagon)
+        private void ValidateHexagon(Coordinates[] cellSet, int centerOfHexagon)
         {
             for (int i = 0; i < 12; i++)
             {
-                var x = cellSet[i, 0];
-                var y = cellSet[i, 1];
+                var x = cellSet[i].X;
+                var y = cellSet[i].Y;
                 var number = _cells[x, y];
 
                 if (number == centerOfHexagon)
