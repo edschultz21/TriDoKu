@@ -37,7 +37,7 @@ Start - 10,1
 Cont - x+1,y+1
 
 Bottom -
-Start - 1,10
+Start - 2,9
 Cont - x+2,y
 
 INSIDES:
