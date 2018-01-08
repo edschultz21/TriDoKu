@@ -26,7 +26,7 @@ namespace Triangles
             // Triangles3 - OUTSIDE_BOT, INSIDE_SW, INSIDE_SE, TRIANGLE_7U
             // Triangles4 - INSIDE_TOP, TRIANGLE_3D
             // Triangles5 - INSIDE_SW, INSIDE_SE, TRIANGLE_2U, TRIANGLE_4U, TRIANGLE_5U, TRIANGLE_6D, TRIANGLE_8D, TRIANGLE_9U
-            Read("Solvable2.txt");
+            Read("Solvable3.txt");
 
             DetermineAllowableNumbers();
 
@@ -46,17 +46,23 @@ namespace Triangles
             {
                 resultsCount = results.Count;
 
-                var count = Solve(ByAllowableNumbers);
+                var count = Solve(AllowableNumbers);
                 while (count != 0)
                 {
                     results.Add(new PassResults { SolutionType = SolutionType.ALLOWABLE_NUMBER, AmountSolved = count });
-                    count = Solve(ByAllowableNumbers);
+                    count = Solve(AllowableNumbers);
                 }
 
-                count = Solve(ByTriangleElimination);
+                count = Solve(TriangleElimination);
                 if (count != 0)
                 {
                     results.Add(new PassResults { SolutionType = SolutionType.TRIANGLE_ELIMINATION, AmountSolved = count });
+                }
+
+                count = Solve(InsideElimination);
+                if (count != 0)
+                {
+                    results.Add(new PassResults { SolutionType = SolutionType.INSIDE_ELIMINATION, AmountSolved = count });
                 }
             }
         }
@@ -70,18 +76,25 @@ namespace Triangles
             {
                 resultsCount = results.Count;
 
-                var count = Solve(ByAllowableNumbers);
+                var count = Solve(AllowableNumbers);
                 while (count != 0)
                 {
                     results.Add(new PassResults { SolutionType = SolutionType.ALLOWABLE_NUMBER, AmountSolved = count });
-                    count = Solve(ByAllowableNumbers);
+                    count = Solve(AllowableNumbers);
                 }
 
-                count = Solve(ByTriangleElimination);
+                count = Solve(TriangleElimination);
                 while (count != 0)
                 {
                     results.Add(new PassResults { SolutionType = SolutionType.TRIANGLE_ELIMINATION, AmountSolved = count });
-                    count = Solve(ByTriangleElimination);
+                    count = Solve(TriangleElimination);
+                }
+
+                count = Solve(InsideElimination);
+                while (count != 0)
+                {
+                    results.Add(new PassResults { SolutionType = SolutionType.INSIDE_ELIMINATION, AmountSolved = count });
+                    count = Solve(InsideElimination);
                 }
             }
         }
@@ -116,7 +129,7 @@ namespace Triangles
             return count;
         }
 
-        private bool ByAllowableNumbers(CellData cellData, List<Coordinates> newNumbers)
+        private bool AllowableNumbers(CellData cellData, List<Coordinates> newNumbers)
         {
             if (cellData.CountOfAllowableNumbers() == 1)
             {
@@ -130,7 +143,7 @@ namespace Triangles
             return false;
         }
 
-        private bool ByTriangleElimination(CellData cellData, List<Coordinates> newNumbers)
+        private bool TriangleElimination(CellData cellData, List<Coordinates> newNumbers)
         {
             var triangle = CellSet.GetTriangle(cellData.CellSets);
             var triangleCellSet = _cellSets[triangle];
@@ -145,6 +158,48 @@ namespace Triangles
             {
                 var foundOtherNumber = false;
                 foreach (var coordinate in triangleCellSet.Coordinates)
+                {
+                    if ((cellData.Coordinates.Y != coordinate.Y || cellData.Coordinates.X != coordinate.X) && _cells[coordinate.Y, coordinate.X].Value == 0)
+                    {
+                        if (_cells[coordinate.Y, coordinate.X].IsNumberAllowed[allowableNumber])
+                        {
+                            foundOtherNumber = true;
+                            break;
+                        }
+                    }
+                }
+                if (!foundOtherNumber)
+                {
+                    cellData.Value = allowableNumber;
+                    newNumbers.Add(new Coordinates { Y = cellData.Coordinates.Y, X = cellData.Coordinates.X });
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool InsideElimination(CellData cellData, List<Coordinates> newNumbers)
+        {
+            var inside = CellSet.GetInside(cellData.CellSets);
+            if (inside == CellSetType.NONE)
+            {
+                return false;
+            }
+
+            var insideCellSet = _cellSets[inside];
+            var allowableNumbers = cellData.GetListOfAllowableNumbers();
+
+            // Get all free cells in each triangle.
+            // For each cell.
+            // For each number in that cell.
+            // See if any of the other free cells allow it.
+            // If none of them do, them we have to use that number.
+            foreach (var allowableNumber in allowableNumbers)
+            {
+                var foundOtherNumber = false;
+                foreach (var coordinate in insideCellSet.Coordinates)
                 {
                     if ((cellData.Coordinates.Y != coordinate.Y || cellData.Coordinates.X != coordinate.X) && _cells[coordinate.Y, coordinate.X].Value == 0)
                     {

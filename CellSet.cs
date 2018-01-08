@@ -65,7 +65,45 @@ namespace Triangles
             }
 
             // Will never get here.
-            return CellSetType.TRIANGLE_1U;
+            return CellSetType.NONE;
+        }
+
+        public static CellSetType GetInside(List<CellSetType> cellSet)
+        {
+            foreach (var cellSetType in cellSet)
+            {
+                switch (cellSetType)
+                {
+                    case CellSetType.INSIDE_SW:
+                    case CellSetType.INSIDE_SE:
+                    case CellSetType.INSIDE_TOP:
+                        return cellSetType;
+
+                    default:
+                        break;
+                }
+            }
+
+            return CellSetType.NONE;
+        }
+
+        public static CellSetType GetOutside(List<CellSetType> cellSet)
+        {
+            foreach (var cellSetType in cellSet)
+            {
+                switch (cellSetType)
+                {
+                    case CellSetType.OUTSIDE_NW:
+                    case CellSetType.OUTSIDE_NE:
+                    case CellSetType.OUTSIDE_BOT:
+                        return cellSetType;
+
+                    default:
+                        break;
+                }
+            }
+
+            return CellSetType.NONE;
         }
 
         #region Populate
@@ -301,15 +339,15 @@ namespace Triangles
                     }
                     break;
                 case CellSetType.INSIDE_SE:
-                    Coordinates[0].Y = 14;
-                    Coordinates[0].X = 5;
+                    Coordinates[0].Y = 5;
+                    Coordinates[0].X = 14;
                     for (int i = 1; i < 9; i++)
                     {
-                        Coordinates[i].Y = Coordinates[i - 1].Y;
-                        Coordinates[i].X = Coordinates[i - 1].X + 1;
-                        i++;
-                        Coordinates[i].Y = Coordinates[i - 1].Y - 1;
+                        Coordinates[i].Y = Coordinates[i - 1].Y + 1;
                         Coordinates[i].X = Coordinates[i - 1].X;
+                        i++;
+                        Coordinates[i].Y = Coordinates[i - 1].Y;
+                        Coordinates[i].X = Coordinates[i - 1].X - 1;
                     }
                     break;
                 case CellSetType.INSIDE_TOP:

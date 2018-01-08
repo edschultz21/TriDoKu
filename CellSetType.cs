@@ -2,6 +2,8 @@
 {
     public enum CellSetType
     {
+        NONE,
+
         OUTSIDE_NW,
         OUTSIDE_NE,
         OUTSIDE_BOT,

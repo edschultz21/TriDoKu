@@ -9,7 +9,8 @@ namespace Triangles
     public enum SolutionType
     {
         ALLOWABLE_NUMBER,
-        TRIANGLE_ELIMINATION
+        TRIANGLE_ELIMINATION,
+        INSIDE_ELIMINATION
     }
 
     public class PassResults
