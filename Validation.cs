@@ -19,7 +19,7 @@ namespace Triangles
 
         private void Validate(CellSetType cellSetType)
         {
-            Validate(_cellSets[cellSetType].Data);
+            Validate(_cellSets[cellSetType].Coordinates);
         }
 
         private void Validate(Coordinates[] cellSet)
@@ -65,7 +65,7 @@ namespace Triangles
             {
                 for (var i = 0; i < count; i++)
                 {
-                    ValidateHexagon(_cells[y, x + i].HexagonCellSet.Data, _cells[y, x + i].Value);
+                    ValidateHexagon(_cells[y, x + i].HexagonCellSet.Coordinates, _cells[y, x + i].Value);
                 }
                 x--;
                 y++;

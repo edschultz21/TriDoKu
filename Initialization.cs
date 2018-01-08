@@ -6,8 +6,6 @@ namespace Triangles
     {
         #region Initialization
 
-        private Dictionary<CellSetType, CellSet> _cellSets;
-
         private void InitializeCellSets()
         {
             _cellSets = new Dictionary<CellSetType, CellSet>();
@@ -69,7 +67,7 @@ namespace Triangles
                         foreach (var cellSetType in cellData.CellSets)
                         {
                             var cellSet = _cellSets[cellSetType];
-                            foreach (var coordinate in cellSet.Data)
+                            foreach (var coordinate in cellSet.Coordinates)
                             {
                                 cellData.DisallowNumber(_cells[coordinate.Y, coordinate.X].Value);
                             }
@@ -88,7 +86,7 @@ namespace Triangles
         private void DetermineAllowableNumbersForHexagon(CellData cellData)
         {
             var cellSet = cellData.HexagonCellSet;
-            foreach (var coordinate in cellSet.Data)
+            foreach (var coordinate in cellSet.Coordinates)
             {
                 cellData.DisallowNumber(_cells[coordinate.Y, coordinate.X].Value);
             }
@@ -102,13 +100,13 @@ namespace Triangles
             foreach (var cellSetType in cellData.CellSets)
             {
                 var cellSet = _cellSets[cellSetType];
-                foreach (var coordinate in cellSet.Data)
+                foreach (var coordinate in cellSet.Coordinates)
                 {
                     _cells[coordinate.Y, coordinate.X].DisallowNumber(number);
                 }
             }
 
-            foreach (var coordinate in cellData.HexagonCellSet.Data)
+            foreach (var coordinate in cellData.HexagonCellSet.Coordinates)
             {
                 if (_cells[coordinate.Y, coordinate.X].Value != -1)
                 {

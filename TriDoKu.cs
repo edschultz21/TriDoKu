@@ -14,6 +14,7 @@ namespace Triangles
     {
         private CellData[,] _cells = new CellData[11, 21];
         private bool[] _hasNumber = new bool[10];
+        private Dictionary<CellSetType, CellSet> _cellSets;
 
         public void Run()
         {
@@ -38,38 +39,69 @@ namespace Triangles
 
         private void Solve()
         {
-            var loops = 0;
-            var totalCount = 0;
+            var results = new List<PassResults>();
+            var resultsCount = -1;
 
-            var count = SolveByAllowableNumbers();
-            while (count != 0)
+            while (resultsCount != results.Count)
             {
-                loops++;
-                totalCount += count;
-                count = SolveByAllowableNumbers();
+                resultsCount = results.Count;
+
+                var count = Solve(ByAllowableNumbers);
+                while (count != 0)
+                {
+                    results.Add(new PassResults { SolutionType = SolutionType.ALLOWABLE_NUMBER, AmountSolved = count });
+                    count = Solve(ByAllowableNumbers);
+                }
+
+                count = Solve(ByTriangleElimination);
+                if (count != 0)
+                {
+                    results.Add(new PassResults { SolutionType = SolutionType.TRIANGLE_ELIMINATION, AmountSolved = count });
+                }
+            }
+        }
+
+        private void Solve1()
+        {
+            var results = new List<PassResults>();
+            var resultsCount = -1;
+
+            while (resultsCount != results.Count)
+            {
+                resultsCount = results.Count;
+
+                var count = Solve(ByAllowableNumbers);
+                while (count != 0)
+                {
+                    results.Add(new PassResults { SolutionType = SolutionType.ALLOWABLE_NUMBER, AmountSolved = count });
+                    count = Solve(ByAllowableNumbers);
+                }
+
+                count = Solve(ByTriangleElimination);
+                while (count != 0)
+                {
+                    results.Add(new PassResults { SolutionType = SolutionType.TRIANGLE_ELIMINATION, AmountSolved = count });
+                    count = Solve(ByTriangleElimination);
+                }
             }
         }
 
         // Easiest approach. Basically see what number(s) are allowed in a given cell.
         // If we get down to one then we know what the number should be.
-        private int SolveByAllowableNumbers()
+        private int Solve(Func<CellData, List<Coordinates>, bool> solve)
         {
             var count = 0;
             List<Coordinates> newNumbers = new List<Coordinates>();
 
-            for (int x = 0; x < 21; x++)
+            for (int y = 0; y < 11; y++)
             {
-                for (int y = 0; y < 11; y++)
+                for (int x = 0; x < 21; x++)
                 {
                     var cellData = _cells[y, x];
                     if (cellData.Value == 0)
                     {
-                        if (cellData.CountOfAllowableNumbers() == 1)
+                        if (solve(cellData, newNumbers))
                         {
-                            int allowableNumber = cellData.GetListOfAllowableNumbers().First();
-                            cellData.Value = allowableNumber;
-                            newNumbers.Add(new Coordinates { Y = y, X = x });
-
                             count++;
                         }
                     }
@@ -84,5 +116,55 @@ namespace Triangles
             return count;
         }
 
+        private bool ByAllowableNumbers(CellData cellData, List<Coordinates> newNumbers)
+        {
+            if (cellData.CountOfAllowableNumbers() == 1)
+            {
+                int allowableNumber = cellData.GetListOfAllowableNumbers().First();
+                cellData.Value = allowableNumber;
+                newNumbers.Add(new Coordinates { Y = cellData.Coordinates.Y, X = cellData.Coordinates.X });
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool ByTriangleElimination(CellData cellData, List<Coordinates> newNumbers)
+        {
+            var triangle = CellSet.GetTriangle(cellData.CellSets);
+            var triangleCellSet = _cellSets[triangle];
+            var allowableNumbers = cellData.GetListOfAllowableNumbers();
+
+            // Get all free cells in each triangle.
+            // For each cell.
+            // For each number in that cell.
+            // See if any of the other free cells allow it.
+            // If none of them do, them we have to use that number.
+            foreach (var allowableNumber in allowableNumbers)
+            {
+                var foundOtherNumber = false;
+                foreach (var coordinate in triangleCellSet.Coordinates)
+                {
+                    if ((cellData.Coordinates.Y != coordinate.Y || cellData.Coordinates.X != coordinate.X) && _cells[coordinate.Y, coordinate.X].Value == 0)
+                    {
+                        if (_cells[coordinate.Y, coordinate.X].IsNumberAllowed[allowableNumber])
+                        {
+                            foundOtherNumber = true;
+                            break;
+                        }
+                    }
+                }
+                if (!foundOtherNumber)
+                {
+                    cellData.Value = allowableNumber;
+                    newNumbers.Add(new Coordinates { Y = cellData.Coordinates.Y, X = cellData.Coordinates.X });
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

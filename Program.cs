@@ -11,7 +11,6 @@ namespace Triangles
         static void Main(string[] args)
         {
             new TriDoKu().Run();
-
         }
     }
 }
